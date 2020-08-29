@@ -29,7 +29,7 @@ namespace CheckmateBOT.NET
         private int[,] mpTmp;
         private int[,] mpBelong;
         private bool[,] vis;
-        private List<int[]> q=new List<int[]>();
+        private List<int[]> q = new List<int[]>();
         public bool error;
         private int sx;
         private int sy;
@@ -180,7 +180,7 @@ namespace CheckmateBOT.NET
         {
             try
             {
-                driver.FindElementById(($"td-{((x - 1) * size) + y}" )).Click();
+                driver.FindElementById(($"td-{((x - 1) * size) + y}")).Click();
                 return;
             }
             catch
@@ -396,6 +396,10 @@ namespace CheckmateBOT.NET
             if (mpBelong[x, y] == 2)
             {
                 return;
+            }
+            if (mpType[x, y] == 2 && mpBelong[x, y] == 1)
+            {
+                Pr("Z");
             }
             var ansTmp = 0;
             var ansI = -1;
