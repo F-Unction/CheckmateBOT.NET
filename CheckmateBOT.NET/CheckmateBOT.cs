@@ -29,7 +29,7 @@ namespace CheckmateBOT.NET
         private int[,] mpTmp;
         private int[,] mpBelong;
         private bool[,] vis;
-        private List<int[]> q;
+        private List<int[]> q=new List<int[]>();
         public bool error;
         private int sx;
         private int sy;
@@ -121,13 +121,13 @@ namespace CheckmateBOT.NET
             {
                 for (var j = 0; j < size; j++)
                 {
-                    string p = (string)stype[0];
+                    string p = stype[0];
                     stype.RemoveAt(0);
                     if (p.Contains(" unshown "))
                     {
                         mpType[i + 1, j + 1] = -1;
                     }
-                    else if (p.Contains(" city "))
+                    else if (p.Contains(" city ") | p.Contains(" empty-city "))
                     {
                         mpType[i + 1, j + 1] = 5;
                     }
@@ -147,7 +147,7 @@ namespace CheckmateBOT.NET
                     {
                         mpType[i + 1, j + 1] = 0;
                     }
-                    else if (p.Contains(" null ") && p.Contains(" grey "))
+                    else if (p.Contains(" null ") && !p.Contains(" grey "))
                     {
                         mpType[i + 1, j + 1] = 3;
                     }
@@ -159,7 +159,7 @@ namespace CheckmateBOT.NET
                     {
                         mpBelong[i + 1, j + 1] = 2;
                     }
-                    p = (string)stmp[0];
+                    p = stmp[0];
                     stmp.RemoveAt(0);
                     try
                     {
@@ -180,7 +180,7 @@ namespace CheckmateBOT.NET
         {
             try
             {
-                driver.FindElementById("td-" + ((x - 1) * size + y).ToString()).Click();
+                driver.FindElementById(($"td-{((x - 1) * size) + y}" )).Click();
                 return;
             }
             catch
@@ -267,9 +267,7 @@ namespace CheckmateBOT.NET
                 WebDriverWait(self.driver, 300).until(
                     EC.visibility_of_element_located((By.TAG_NAME, "tbody")))
                 */
-                //操你妈的傻逼Selenium 一堆函数都他妈不一样 老子找半天命名空间发现没有 操你妈的
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(300));
-                //鬼知道这里会不会出傻逼问题 傻逼selenium 操你妈的 反正应该不会有两个tbody
                 wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.VisibilityOfAllElementsLocatedBy(driver.FindElementsByTagName("tbody")));
             }
             catch (Exception e)
@@ -366,13 +364,14 @@ namespace CheckmateBOT.NET
 
         private void botMove()
         {
-            Thread.Sleep(250);
+            Thread.Sleep(TimeSpan.FromSeconds(0.25));
             var x = 0;
             var y = 0;
             var tryTime = 0;
             getMap();
             while (true)
             {
+                //Thread.Sleep(1);
                 if (q.Count == 0)
                 {
                     changeTarget();
