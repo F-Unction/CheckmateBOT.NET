@@ -36,6 +36,7 @@ namespace CheckmateBOT.NET
         private int sx;
         private int sy;
         private int size;
+        private int userCount;
 
         private int[,] di = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
 
@@ -79,7 +80,7 @@ namespace CheckmateBOT.NET
         }
 
         // 字面意思
-        public void getMap()
+        private void getMap()
         {
             mpType = new int[25, 25];
             mpTmp = new int[25, 25];
@@ -203,79 +204,108 @@ namespace CheckmateBOT.NET
             Thread.Sleep(10000);
             ac.Click(driver.FindElementById("submitButton")).Perform();
 
-
-            //WebDriverWait(self.driver, 8).until(EC.url_to_be(self.kanaLink))
-            Thread.Sleep(8000);
-            if (driver.Url == kanaLink)
+            /*
+            try:
+                WebDriverWait(self.driver, 8).until(EC.url_to_be(self.kanaLink))
+                print("登录成功！")
+            except TimeoutException:
+                print("网络连接出现问题或账密错误！\n程序将在5秒后退出")
+                sleep(5)
+                self.driver.close()
+                del self
+             */
+            try
             {
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(8));
+                wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.UrlToBe(kanaLink));
                 Console.WriteLine("登录成功！");
             }
-            else
+            catch
             {
                 Console.WriteLine("网络连接出现问题或账密错误！");
                 Thread.Sleep(5000);
                 driver.Close();
+                //del self 没有del 告辞
             }
         }
-    } 
+
+        // 进入指定房间
+        public void EnterRoom()
+        {
+            driver.Url = "https://kana.byha.top:444/checkmate/room/" + roomId;
+
+            if (isSecret)
+            {
+                var settingBtn = driver.FindElementByClassName("form-check-input");
+                var ac = new Actions(driver);
+                ac.Click(settingBtn).Perform();
+            }
+            Console.WriteLine("Bot已就位！");
+        }
+
+        // 准备开始，如果300秒未开始，程序退出
+        public void Ready()
+        {
+            try
+            {
+                userCount = int.Parse(driver.FindElementById("total-user").Text);
+            }
+            catch
+            {
+                userCount = 3;
+            }
+            var ac = new Actions(driver);
+            ac.Click(driver.FindElementById("ready")).Perform();
+
+            try
+            {
+                /*
+                WebDriverWait(self.driver, 300).until(
+                    EC.visibility_of_element_located((By.TAG_NAME, "tbody")))
+                */
+                //操你妈的傻逼Selenium 一堆函数都他妈不一样 老子找半天命名空间发现没有 操你妈的
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(300));
+                //鬼知道这里会不会出傻逼问题 傻逼selenium 操你妈的 反正应该不会有两个tbody
+                wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.VisibilityOfAllElementsLocatedBy(driver.FindElementsByTagName("tbody")));
+            }
+            catch
+            {
+                Console.WriteLine("房间内无人开始，过一会再试试吧");
+                Thread.Sleep(5000);
+                Kill();
+            }
+        }
+
+        private void Kill()
+        {
+            driver.Close();
+            //del self 我tm del你妈
+        }
+
+        private void Pr(string c)
+        {
+            SendKeyToTable(c);
+            // print(c)
+        }
+
+        private bool isOutside(int x, int y)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+
+                int px = x + di[i, 0];
+                int py = y + di[i, 1];
+                if (px >= 1 && px <= size && py >= 1 && py <= size && mpBelong[px, py] == 2)
+                { 
+                    return true; 
+                }
+            }
+            return false;
+        }
+    }
 }
 /*
 class Bot(object):
-
-
-    def EnterRoom(self):
-        """
-        进入指定房间
-        :return:
-        """
-        self.driver.get(
-            "https://kana.byha.top:444/checkmate/room/" + self.roomId)
-        if self.isSecret:
-            settingBtn = self.driver.find_element_by_class_name(
-                "form-check-input")
-            ac = ActionChains(self.driver)
-            ac.click(settingBtn).perform()
-        print("Bot已就位！")
-
-    def Ready(self):
-        """
-        准备开始，如果300秒未开始，程序退出
-        :return:
-        """
-        // sleep(1)
-        try:
-            self.userCount = int(
-                self.driver.find_element_by_id("total-user").text)
-        except ValueError:
-            self.userCount = 3
-        ac = ActionChains(self.driver)
-        ac.click(self.driver.find_element_by_id("ready")).perform()
-
-        try:
-            WebDriverWait(self.driver, 300).until(
-                EC.visibility_of_element_located((By.TAG_NAME, "tbody")))
-        except TimeoutException:
-            print("房间内无人开始，过一会再试试吧")
-            sleep(5)
-            self.Kill()
-
-    def Kill(self):
-        self.driver.close()
-        del self
-
-    def Pr(self, c):
-        self.SendKeyToTable(c)
-        // print(c)
-        return
-
-    def isOutside(self, x, y):
-        for i in range(4):
-            px = x + self.di[i][0]
-            py = y + self.di[i][1]
-            if px >= 1 and px <= self.size and py >= 1 and py <= self.size and self.mpBelong[px][py] == 2:
-                return True
-        return False
-
     def changeTarget(self):
         insideAnsTmp = self.mpTmp[self.sx][self.sy]
         insideAnsX = self.sx
