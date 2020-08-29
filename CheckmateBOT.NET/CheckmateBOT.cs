@@ -10,6 +10,7 @@ using OpenQA.Selenium.Internal;
 using System.Text.RegularExpressions;
 using System.Collections;
 using System.Threading;
+using System.Linq;
 
 namespace CheckmateBOT.NET
 {
@@ -19,7 +20,6 @@ namespace CheckmateBOT.NET
          * https://kana.byha.top:444/post/6735
          * https://www.luogu.com.cn/paste/nbyi7ds9
          */
-
 
         private string kanaLink;
         private ChromeDriver driver;
@@ -31,12 +31,14 @@ namespace CheckmateBOT.NET
         private int[,] mpType;
         private int[,] mpTmp;
         private int[,] mpBelong;
-        private int[,] vis;
+        private bool[,] vis;
+        private ArrayList q = new ArrayList();
         public bool error;
         private int sx;
         private int sy;
         private int size;
         private int userCount;
+        private Random rd = new Random();
 
         private int[,] di = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
 
@@ -52,7 +54,7 @@ namespace CheckmateBOT.NET
             mpType = new int[25, 25];
             mpTmp = new int[25, 25];
             mpBelong = new int[25, 25];
-            vis = new int[25, 25];
+            vis = new bool[25, 25];
             error = false;
             sx = sy = 0;
             size = 20;
@@ -296,98 +298,153 @@ namespace CheckmateBOT.NET
                 int px = x + di[i, 0];
                 int py = y + di[i, 1];
                 if (px >= 1 && px <= size && py >= 1 && py <= size && mpBelong[px, py] == 2)
-                { 
-                    return true; 
+                {
+                    return true;
                 }
             }
             return false;
         }
-    }
-}
-/*
-class Bot(object):
-    def changeTarget(self):
-        insideAnsTmp = self.mpTmp[self.sx][self.sy]
-        insideAnsX = self.sx
-        insideAnsY = self.sy
-        outsideAnsTmp = 0
-        outsideAnsX = 0
-        outsideAnsY = 0
-        for p in range(self.size):
-            for q in range(self.size):
-                i = p + 1
-                j = q + 1
-                if self.mpBelong[i][j] == 1:
-                    if self.isOutside(i, j):
-                        if self.mpTmp[i][j] > outsideAnsTmp:
-                            outsideAnsTmp = self.mpTmp[i][j]
-                            outsideAnsX = i
-                            outsideAnsY = j
-                    else:
-                        if self.mpTmp[i][j] > insideAnsTmp:
-                            insideAnsTmp = self.mpTmp[i][j]
-                            insideAnsX = i
-                            insideAnsY = j
-        if outsideAnsTmp * 5 >= insideAnsTmp:
-            self.sx = outsideAnsX
-            self.sy = outsideAnsY
-        else:
-            self.sx = insideAnsX
-            self.sy = insideAnsY
-        self.q.append([self.sx, self.sy])
-        if random.randint(0, 1) == 1:
-            self.vis = [[False for i in range(25)] for j in range(25)]
-        self.vis[self.sx][self.sy] = True
-        self.selectLand(self.sx, self.sy)
-        return
 
-    def botMove(self):
-        sleep(0.25)
-        x = 0
-        y = 0
-        tryTime = 0
-        self.getMap()
-        while True:
-            if len(self.q) == 0:
-                self.changeTarget()
-            x = self.q[0][0]
-            y = self.q[0][1]
-            tryTime += 1
-            self.q.pop(0)
-            if not(self.mpTmp[x][y] <= 1 and self.mpType[x][y] != 2 and tryTime <= 10):
-                break
-        if tryTime > 10:
-            return
-        if self.mpTmp[x][y] <= 1:
-            return
-        if self.mpBelong[x][y] == 2:
-            return
-        ansTmp = 0
-        ansI = -1
-        tmpI = [0, 1, 2, 3]
-        random.shuffle(tmpI)
-        for i in tmpI:
-            px = x + self.di[i][0]
-            py = y + self.di[i][1]
-            if px >= 1 and px <= self.size and py >= 1 and py <= self.size and self.mpType[px][py] != 1 and (not self.vis[px][py]) and (self.mpType[px][py] != 5 or self.mpTmp[x][y] > self.mpTmp[px][py]):
-                currentTmp = 0
-                if self.mpBelong[px][py] == 2:
-                    if self.mpType[px][py] == 2:
-                        currentTmp = 10
-                    elif self.mpType[px][py] == 5:
-                        currentTmp = 8
-                    elif self.mpType[px][py] == 3:
-                        currentTmp = 5
-                    else:
-                        currentTmp = 3
-                else:
-                    currentTmp = 1
-                if currentTmp > ansTmp:
-                    ansTmp = currentTmp
-                    ansI = i
-        if ansI == -1:
-            return
-        px = x + self.di[ansI][0]
+        private void changeTarget()
+        {
+            var insideAnsTmp = mpTmp[sx, sy];
+            var insideAnsX = sx;
+            var insideAnsY = sy;
+            var outsideAnsTmp = 0;
+            var outsideAnsX = 0;
+            var outsideAnsY = 0;
+            for (int p = 0; p < size; p++)
+            {
+                for (int q = 0; q < size; q++)
+                {
+                    var i = p + 1;
+                    var j = q + 1;
+                    if (mpBelong[i, j] == 1)
+                    {
+                        if (isOutside(i, j))
+                        {
+                            if (mpTmp[i, j] > outsideAnsTmp)
+                            {
+                                outsideAnsTmp = mpTmp[i, j];
+                                outsideAnsX = i;
+                                outsideAnsY = j;
+                            }
+                        }
+                        else
+                        {
+                            if (mpTmp[i, j] > insideAnsTmp)
+                            {
+                                insideAnsTmp = mpTmp[i, j];
+                                insideAnsX = i;
+                                insideAnsY = j;
+                            }
+                        }
+                    }
+                }
+            }
+            if (outsideAnsTmp * 5 >= insideAnsTmp)
+            {
+                sx = outsideAnsX;
+                sy = outsideAnsY;
+            }
+            else
+            {
+                sx = insideAnsX;
+                sy = insideAnsY;
+            }
+            q.Add(new int[2] { sx, sy });
+            if (rd.Next(0, 2) == 1)
+            {
+                vis = new bool[25, 25];
+            }
+            vis[sx, sy] = true;
+            selectLand(sx, sy);
+            return;
+        }
+
+        private void botMove()
+        {
+            Thread.Sleep(250);
+            var x = 0;
+            var y = 0;
+            var tryTime = 0;
+            getMap();
+            while (true)
+            {
+                if (q.Count == 0)
+                {
+                    changeTarget();
+                }
+                // 妈的真难看
+                x = ((int[])(q[0]))[0];
+                y = ((int[])(q[0]))[1];
+                tryTime += 1;
+                q.RemoveAt(0);
+                if (!(mpTmp[x, y] <= 1 && mpType[x, y] != 2 && tryTime <= 10))
+                {
+                    break;
+                }
+            }
+            if (tryTime > 10)
+            {
+                return;
+            }
+            if (mpTmp[x,y] <= 1)
+            {
+                return;
+            }
+            if (mpBelong[x, y] == 2)
+            {
+                return;
+            }
+            var ansTmp = 0;
+            var ansI = -1;
+            int[] tmpI = [0, 1, 2, 3];
+            // random.shuffle(tmpI)
+            tmpI = tmpI.OrderBy(c => Guid.NewGuid()).ToArray<int>();
+
+            foreach (var i in tmpI)
+            {
+                var px = x + di[i, 0];
+                var py = y + di[i, 1];
+                if (px >= 1 && px <= size && py >= 1 && py <= size && mpType[px, py] != 1 && (!vis[px, py]) && (mpType[px, py] != 5 || mpTmp[x, y] > mpTmp[px, py]))
+                {
+                    var currentTmp = 0;
+                    if (mpBelong[px, py] == 2)
+                    {
+                        if (mpType[px, py] == 2)
+                        {
+                            currentTmp = 10;
+                        }
+                        else if (mpType[px, py] == 5)
+                        {
+                            currentTmp = 8;
+                        }
+                        else if (mpType[px][py] == 3)
+                        {
+                            currentTmp = 5;
+                        }
+                        else
+                        {
+                            currentTmp = 3;
+                        }
+                    }
+                    else
+                    {
+                        currentTmp = 1;
+                    }
+                    if (currentTmp > ansTmp)
+                    {
+                        ansTmp = currentTmp;
+                        ansI = i;
+                    }
+                }
+            }
+            if (ansI == -1)
+            {
+                return;
+            }
+            px = x + self.di[ansI][0]
         py = y + self.di[ansI][1]
         self.vis[px][py] = True
         self.q.append([px, py])
@@ -401,6 +458,12 @@ class Bot(object):
             self.Pr('A')
         self.botMove()
         return
+                }
+    }
+}
+/*
+class Bot(object):
+
 
     def Main(self):
         self.Login()
