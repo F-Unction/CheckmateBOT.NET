@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
-using SeleniumExtras.WaitHelpers;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Internal;
 using System.Text.RegularExpressions;
 using System.Collections;
 using System.Threading;
 using System.Linq;
-using OpenQA.Selenium.Edge;
+using System.Collections.Generic;
 
 namespace CheckmateBOT.NET
 {
@@ -33,7 +29,7 @@ namespace CheckmateBOT.NET
         private int[,] mpTmp;
         private int[,] mpBelong;
         private bool[,] vis;
-        private ArrayList q = new ArrayList();
+        private List<int[]> q;
         public bool error;
         private int sx;
         private int sy;
@@ -91,8 +87,8 @@ namespace CheckmateBOT.NET
             mpTmp = new int[25, 25];
             mpBelong = new int[25, 25];
             var s = driver.FindElementById("m").GetAttribute("innerHTML");
-            var stype = new ArrayList();
-            var stmp = new ArrayList();
+            var stype = new List<string>();
+            var stmp = new List<string>();
             var cnt = 0;
             string g;
             while (true)
@@ -171,7 +167,7 @@ namespace CheckmateBOT.NET
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("format exception:{0}", e.Message);
+                        //Console.WriteLine("format exception:{0}", e.Message);
                         mpTmp[i + 1, j + 1] = 0;
                     }
                 }
@@ -381,9 +377,8 @@ namespace CheckmateBOT.NET
                 {
                     changeTarget();
                 }
-                // 妈的真难看
-                x = ((int[])(q[0]))[0];
-                y = ((int[])(q[0]))[1];
+                x = q[0][0];
+                y = q[0][1];
                 tryTime += 1;
                 q.RemoveAt(0);
                 if (!(mpTmp[x, y] <= 1 && mpType[x, y] != 2 && tryTime <= 10))
