@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 using System.Threading;
 using System.Linq;
+using OpenQA.Selenium.Edge;
 
 namespace CheckmateBOT.NET
 {
@@ -41,6 +42,7 @@ namespace CheckmateBOT.NET
         private Random rd = new Random();
 
         private int[,] di = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
+        private IWebElement table;
 
         public CheckmateBOT(string username, string password, string roomId, bool isSecret = false, bool isAutoReady = true)
         {
@@ -77,6 +79,7 @@ namespace CheckmateBOT.NET
             }
             catch
             {
+                Console.WriteLine("找不到ID为{0}的组件", elementID);
                 return false;
             }
         }
@@ -166,8 +169,9 @@ namespace CheckmateBOT.NET
                     {
                         mpTmp[i + 1, j + 1] = int.Parse(p);
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        Console.WriteLine("format exception:{0}", e.Message);
                         mpTmp[i + 1, j + 1] = 0;
                     }
                 }
@@ -185,6 +189,7 @@ namespace CheckmateBOT.NET
             }
             catch
             {
+                Console.WriteLine("选择土地失败");
                 return;
             }
         }
@@ -254,6 +259,7 @@ namespace CheckmateBOT.NET
             }
             catch
             {
+                Console.WriteLine("获取玩家数失败");
                 userCount = 3;
             }
             var ac = new Actions(driver);
@@ -270,9 +276,9 @@ namespace CheckmateBOT.NET
                 //鬼知道这里会不会出傻逼问题 傻逼selenium 操你妈的 反正应该不会有两个tbody
                 wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.VisibilityOfAllElementsLocatedBy(driver.FindElementsByTagName("tbody")));
             }
-            catch
+            catch (Exception e)
             {
-                Console.WriteLine("房间内无人开始，过一会再试试吧");
+                Console.WriteLine("房间内无人开始，过一会再试试吧:{0}", e.Message);
                 Thread.Sleep(5000);
                 Kill();
             }
@@ -389,7 +395,7 @@ namespace CheckmateBOT.NET
             {
                 return;
             }
-            if (mpTmp[x,y] <= 1)
+            if (mpTmp[x, y] <= 1)
             {
                 return;
             }
@@ -399,14 +405,15 @@ namespace CheckmateBOT.NET
             }
             var ansTmp = 0;
             var ansI = -1;
-            int[] tmpI = [0, 1, 2, 3];
+            int[] tmpI = { 0, 1, 2, 3 };
             // random.shuffle(tmpI)
             tmpI = tmpI.OrderBy(c => Guid.NewGuid()).ToArray<int>();
 
+            int px, py;
             foreach (var i in tmpI)
             {
-                var px = x + di[i, 0];
-                var py = y + di[i, 1];
+                px = x + di[i, 0];
+                py = y + di[i, 1];
                 if (px >= 1 && px <= size && py >= 1 && py <= size && mpType[px, py] != 1 && (!vis[px, py]) && (mpType[px, py] != 5 || mpTmp[x, y] > mpTmp[px, py]))
                 {
                     var currentTmp = 0;
@@ -420,7 +427,7 @@ namespace CheckmateBOT.NET
                         {
                             currentTmp = 8;
                         }
-                        else if (mpType[px][py] == 3)
+                        else if (mpType[px, py] == 3)
                         {
                             currentTmp = 5;
                         }
@@ -444,57 +451,64 @@ namespace CheckmateBOT.NET
             {
                 return;
             }
-            px = x + self.di[ansI][0]
-        py = y + self.di[ansI][1]
-        self.vis[px][py] = True
-        self.q.append([px, py])
-        if ansI == 0:
-            self.Pr('W')
-        elif ansI == 1:
-            self.Pr('D')
-        elif ansI == 2:
-            self.Pr('S')
-        else:
-            self.Pr('A')
-        self.botMove()
-        return
+            px = x + di[ansI, 0];
+            py = y + di[ansI, 1];
+            vis[px, py] = true;
+            q.Add(new int[] { px, py });
+            if (ansI == 0)
+            {
+                Pr("W");
+            }
+            else if (ansI == 1)
+            {
+                Pr("D");
+            }
+            else if (ansI == 2)
+            {
+                Pr("S");
+            }
+            else
+            {
+                Pr("A");
+            }
+            botMove();
+            return;
+        }
+
+        public void Init()
+        {
+
+            Login();
+            EnterRoom();
+            table = driver.FindElementByTagName("tbody");
+            while (true)
+            {
+                if (isAutoReady)
+                {
+                    Ready();
                 }
+                Pr("F");// 防踢
+                getMap();
+                sx = 0;
+                sy = 0;
+                for (int i = 0; i < size; i++)
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (mpBelong[i + 1, j + 1] == 1 && mpType[i + 1, j + 1] == 2)
+                        {
+                            sx = i + 1;
+                            sy = j + 1;
+                        }
+                    }
+                }
+                if (sx == 0 || sy == 0)
+                {
+                    continue;
+                }
+                changeTarget();
+                botMove();
+            }
+        }
     }
 }
-/*
-class Bot(object):
-
-
-    def Main(self):
-        self.Login()
-        self.EnterRoom()
-        self.table = self.driver.find_element_by_tag_name("tbody")
-        while True:
-            if self.isAutoReady:
-                self.Ready()
-            self.Pr('F') // 防踢
-            self.getMap()
-            self.sx = 0
-            self.sy = 0
-            for i in range(self.size):
-                for j in range(self.size):
-                    if self.mpBelong[i + 1][j + 1] == 1 and self.mpType[i + 1][j + 1] == 2:
-                        self.sx = i + 1
-                        self.sy = j + 1
-            if self.sx == 0 or self.sy == 0:
-                continue
-            self.changeTarget()
-            self.botMove()
-        return
-
-
-print("输入用户名：")
-t1 = input()
-print("输入密码：")
-t2 = input()
-print("输入房间号：")
-t3 = input()
-a = Bot(t1, t2, t3)
-a.Main()
-
-*/
