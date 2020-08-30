@@ -138,7 +138,7 @@ namespace CheckmateBOT.NET
                     string p = stype[0];
                     stype.RemoveAt(0);
 
-                    if (p.Contains(" city ") | p.Contains(" empty-city "))
+                    if (p.Contains(" city ") || p.Contains(" empty-city "))
                     {
                         mpType[i + 1, j + 1] = 5;
                     }
@@ -190,92 +190,6 @@ namespace CheckmateBOT.NET
             return;
         }
 
-
-        private void dfsRoute(int x, int y, int ex, int ey, int cnt)
-        {
-            if (x == ex && y == ey && cnt < ansLen)
-            {
-                ansLen = cnt;
-                route = new List<int[]>();
-                tmpQ.ForEach(i => route.Add(i));
-                return;
-            }
-            if (cnt >= ansLen)
-            {
-                return;
-            }
-            var tmpI = new int[4] { 0, 1, 2, 3 };
-            tmpI = tmpI.OrderBy(c => Guid.NewGuid()).ToArray<int>();
-
-            foreach (var i in tmpI)
-            {
-                if (endTag)
-                {
-                    return;
-                }
-                var px = x + di[i, 0];
-                var py = y + di[i, 1];
-                if (px >= 1 && px <= size && py >= 1 && py <= size && (!tmpVis[px, py]) && mpType[px, py] != 1)
-                {
-
-                    tmpVis[px, py] = true;
-
-                    tmpQ.Add(new int[3] { i, x, y });
-                    dfsRoute(px, py, ex, ey, cnt + 1);
-                    tmpQ.Remove(new int[3] { i, x, y });
-                    if (rd.Next(0, 11) >= 2)
-                    {
-                        tmpVis[px,py] = false;
-                    }
-                }
-            }
-        }
-
-        private void Attack(int x, int y, int ex, int ey)
-        {
-            tmpQ = new List<int[]>();
-            route = new List<int[]>();
-            endTag = false;
-            tmpVis = new bool[25, 25];
-            tmpVis[x, y] = true;
-            ansLen = 10000;
-            dfsRoute(x, y, ex, ey, 0);
-            if (route.Count < 1)
-            {
-                return;
-            }
-            foreach (var p in route)
-            {
-                var i = p[0];
-                getMap();
-                if (x < 1 || y < 1 || x > size || y > size || mpBelong[x, y] == 2 || mpTmp[x, y] < 2)
-                {
-                    return;
-                }
-                if (i == 0)
-                {
-                    Pr("W");
-                    x -= 1;
-                }
-                else if (i == 1)
-                {
-                    Pr("D");
-                    y += 1;
-                }
-                else if (i == 2)
-                {
-                    Pr("S");
-                    x += 1;
-                }
-                else
-                {
-                    Pr("A");
-                    y -= 1;
-                    Thread.Sleep(TimeSpan.FromSeconds(0.25));
-                }
-            }
-        }
-
         // 选择土地
         public void selectLand(int x, int y)
         {
@@ -284,9 +198,9 @@ namespace CheckmateBOT.NET
                 driver.FindElementById(($"td-{((x - 1) * size) + y}")).Click();
                 return;
             }
-            catch
+            catch(Exception e)
             {
-                Console.WriteLine("选择土地失败");
+                Console.WriteLine($"选择土地失败:{e.Message}");
                 return;
             }
         }
@@ -294,7 +208,6 @@ namespace CheckmateBOT.NET
         //登录，如果出现异常则在5S后退出
         public void Login()
         {
-
             Console.WriteLine("正在登录…");
             driver.Url = kanaLink;
             var usernameBox = driver.FindElementByName("username");
@@ -354,9 +267,9 @@ namespace CheckmateBOT.NET
             {
                 userCount = int.Parse(driver.FindElementById("total-user").Text);
             }
-            catch
+            catch(Exception e)
             {
-                Console.WriteLine("获取玩家数失败");
+                Console.WriteLine($"获取玩家数失败:{e.Message}");
                 userCount = 3;
             }
             var ac = new Actions(driver);
@@ -463,6 +376,92 @@ namespace CheckmateBOT.NET
             return;
         }
 
+        private void dfsRoute(int x, int y, int ex, int ey, int cnt)
+        {
+            if (x == ex && y == ey && cnt < ansLen)
+            {
+                ansLen = cnt;
+                route = new List<int[]>();
+                tmpQ.ForEach(i => route.Add(i));
+                return;
+            }
+            if (cnt >= ansLen)
+            {
+                return;
+            }
+            var tmpI = new int[4] { 0, 1, 2, 3 };
+            tmpI = tmpI.OrderBy(c => Guid.NewGuid()).ToArray<int>();
+
+            foreach (var i in tmpI)
+            {
+                if (endTag)
+                {
+                    return;
+                }
+                var px = x + di[i, 0];
+                var py = y + di[i, 1];
+                if (px >= 1 && px <= size && py >= 1 && py <= size && (!tmpVis[px, py]) && mpType[px, py] != 1)
+                {
+
+                    tmpVis[px, py] = true;
+
+                    tmpQ.Add(new int[3] { i, x, y });
+                    dfsRoute(px, py, ex, ey, cnt + 1);
+                    tmpQ.Remove(new int[3] { i, x, y });
+                    if (rd.Next(0, 11) >= 2)
+                    {
+                        tmpVis[px, py] = false;
+                    }
+                }
+            }
+        }
+
+        private void Attack(int x, int y, int ex, int ey)
+        {
+            tmpQ = new List<int[]>();
+            route = new List<int[]>();
+            endTag = false;
+            tmpVis = new bool[25, 25];
+            tmpVis[x, y] = true;
+            ansLen = 10000;
+            dfsRoute(x, y, ex, ey, 0);
+            if (route.Count < 1)
+            {
+                return;
+            }
+            foreach (var p in route)
+            {
+                var i = p[0];
+                getMap();
+                if (x < 1 || y < 1 || x > size || y > size || mpBelong[x, y] == 2 || mpTmp[x, y] < 2)
+                {
+                    return;
+                }
+                if (i == 0)
+                {
+                    Pr("W");
+                    x -= 1;
+                }
+                else if (i == 1)
+                {
+                    Pr("D");
+                    y += 1;
+                }
+                else if (i == 2)
+                {
+                    Pr("S");
+                    x += 1;
+                }
+                else
+                {
+                    Pr("A");
+                    y -= 1;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(0.25));
+            }
+        }
+
+
         private void botMove()
         {
             Thread.Sleep(250);
@@ -472,7 +471,6 @@ namespace CheckmateBOT.NET
             getMap();
             while (true)
             {
-                //Thread.Sleep(1);
                 if (q.Count == 0)
                 {
                     changeTarget();
@@ -498,7 +496,6 @@ namespace CheckmateBOT.NET
             {
                 return;
             }
-            homes = new List<int[]>();
             if (mpType[x, y] == 2 && mpBelong[x, y] == 1)
             {
                 Pr("Z");
@@ -533,7 +530,7 @@ namespace CheckmateBOT.NET
             foreach (var i in tmpI)
             {
                 px = x + di[i, 0];
-                py = y + di[i, 1];
+                py = y + di[i, 1];/////////
                 if (px >= 1 && px <= size && py >= 1 && py <= size && mpType[px, py] != 1 && (!vis[px, py]) && (mpType[px, py] != 5 || mpTmp[x, y] > mpTmp[px, py]))
                 {
                     var currentTmp = 0;
@@ -542,10 +539,6 @@ namespace CheckmateBOT.NET
                         if (mpType[px, py] == 2)
                         {
                             currentTmp = 10;
-                            if (!(homes.Contains(new int[2] { px, py })))
-                            {
-                                homes.Add(new int[2] { px, py });
-                            }
                         }
                         else if (mpType[px, py] == 5)
                         {
