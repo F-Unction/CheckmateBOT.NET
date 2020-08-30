@@ -4,7 +4,6 @@ using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Chrome;
 using System.Text.RegularExpressions;
-using System.Collections;
 using System.Threading;
 using System.Linq;
 using System.Collections.Generic;
@@ -19,34 +18,38 @@ namespace CheckmateBOT.NET
          */
 
         private string kanaLink;
-        private ChromeDriver driver;
         private string username;
         private string password;
         private string roomId;
-        private bool isSecret;
-        private bool isAutoReady;
+
+        private ChromeDriver driver;
+        private IWebElement table;
+
         private int[,] mpType;
         private int[,] mpTmp;
         private int[,] mpBelong;
-        private bool[,] tmpVis;
+        private int[,] di = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
 
         private bool[,] vis;
-        private List<int[]> q = new List<int[]>();
+        private bool[,] tmpVis;
+        private bool isSecret;
+        private bool endTag;
+        private bool isAutoReady;
         public bool error;
+
         private int sx;
         private int sy;
+        private int userCount;
+        private int ansLen;
         private int size;
+
+
+        private List<int[]> q = new List<int[]>();
         private List<int[]> homes = new List<int[]>();
         private List<int[]> tmpQ = new List<int[]>();
         private List<int[]> route = new List<int[]>();
-        private bool endTag;
-        private int ansLen;
 
-        private int userCount;
         private Random rd = new Random();
-
-        private int[,] di = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
-        private IWebElement table;
 
         public CheckmateBOT(string username, string password, string roomId, bool isSecret = false, bool isAutoReady = true)
         {
@@ -220,6 +223,10 @@ namespace CheckmateBOT.NET
                     tmpQ.Add(new int[3] { i, x, y });
                     dfsRoute(px, py, ex, ey, cnt + 1);
                     tmpQ.Remove(new int[3] { i, x, y });
+                    if (rd.Next(0, 11) >= 2)
+                    {
+                        tmpVis[px,py] = false;
+                    }
                 }
             }
         }
@@ -500,11 +507,15 @@ namespace CheckmateBOT.NET
             {
                 for (int j = 0; j < size; j++)
                 {
-                    if (mpType[i + 1, j + 1] == 2 && mpBelong[i + 1, j + 1] == 2)
+                    if (mpType[i + 1, j + 1] == 2 && mpBelong[i + 1, j + 1] == 2  && (! homes.Contains(new int[2]{i +1, j + 1})))
                     {
                         homes.Add(new int[2] { i + 1, j + 1 });
                     }
                 }
+            }
+            if (homes.Contains(new int[2] { x, y }))
+            {
+                homes.Remove(new int[2] { x, y });
             }
             if (homes.Count > 0 && rd.Next(1, 11) == 1 && mpTmp[x, y] > 30)
             {
