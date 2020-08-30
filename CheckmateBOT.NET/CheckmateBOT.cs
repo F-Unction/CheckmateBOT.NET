@@ -28,12 +28,20 @@ namespace CheckmateBOT.NET
         private int[,] mpType;
         private int[,] mpTmp;
         private int[,] mpBelong;
+        private bool[,] tmpVis;
+
         private bool[,] vis;
         private List<int[]> q = new List<int[]>();
         public bool error;
         private int sx;
         private int sy;
         private int size;
+        private List<int[]> homes = new List<int[]>();
+        private List<int[]> tmpQ = new List<int[]>();
+        private List<int[]> route = new List<int[]>();
+        private bool endTag;
+        private int ansLen;
+
         private int userCount;
         private Random rd = new Random();
 
@@ -53,9 +61,12 @@ namespace CheckmateBOT.NET
             mpTmp = new int[25, 25];
             mpBelong = new int[25, 25];
             vis = new bool[25, 25];
+            tmpVis = new bool[25, 25];
             error = false;
             sx = sy = 0;
             size = 20;
+            endTag = false;
+            ansLen = 100000;
         }
 
         private void SendKeyToTable(string key)
@@ -123,11 +134,8 @@ namespace CheckmateBOT.NET
                 {
                     string p = stype[0];
                     stype.RemoveAt(0);
-                    if (p.Contains(" unshown "))
-                    {
-                        mpType[i + 1, j + 1] = -1;
-                    }
-                    else if (p.Contains(" city ") | p.Contains(" empty-city "))
+
+                    if (p.Contains(" city ") | p.Contains(" empty-city "))
                     {
                         mpType[i + 1, j + 1] = 5;
                     }
@@ -135,7 +143,7 @@ namespace CheckmateBOT.NET
                     {
                         mpType[i + 1, j + 1] = 2;
                     }
-                    else if (p.Contains(" mountain "))
+                    else if (p.Contains(" mountain ") || p.Contains(" obstacle "))
                     {
                         mpType[i + 1, j + 1] = 1;
                     }
@@ -151,6 +159,10 @@ namespace CheckmateBOT.NET
                     {
                         mpType[i + 1, j + 1] = 3;
                     }
+                    else
+                    {
+                        mpType[i + 1, j + 1] = -1;
+                    }
                     if (p.Contains(" own "))
                     {
                         mpBelong[i + 1, j + 1] = 1;
@@ -165,7 +177,7 @@ namespace CheckmateBOT.NET
                     {
                         mpTmp[i + 1, j + 1] = int.Parse(p);
                     }
-                    catch (Exception e)
+                    catch
                     {
                         //Console.WriteLine("format exception:{0}", e.Message);
                         mpTmp[i + 1, j + 1] = 0;
@@ -173,6 +185,88 @@ namespace CheckmateBOT.NET
                 }
             }
             return;
+        }
+
+
+        private void dfsRoute(int x, int y, int ex, int ey, int cnt)
+        {
+            if (x == ex && y == ey && cnt < ansLen)
+            {
+                ansLen = cnt;
+                route = new List<int[]>();
+                tmpQ.ForEach(i => route.Add(i));
+                return;
+            }
+            if (cnt >= ansLen)
+            {
+                return;
+            }
+            var tmpI = new int[4] { 0, 1, 2, 3 };
+            tmpI = tmpI.OrderBy(c => Guid.NewGuid()).ToArray<int>();
+
+            foreach (var i in tmpI)
+            {
+                if (endTag)
+                {
+                    return;
+                }
+                var px = x + di[i, 0];
+                var py = y + di[i, 1];
+                if (px >= 1 && px <= size && py >= 1 && py <= size && (!tmpVis[px, py]) && mpType[px, py] != 1)
+                {
+
+                    tmpVis[px, py] = true;
+
+                    tmpQ.Add(new int[3] { i, x, y });
+                    dfsRoute(px, py, ex, ey, cnt + 1);
+                    tmpQ.Remove(new int[3] { i, x, y });
+                }
+            }
+        }
+
+        private void Attack(int x, int y, int ex, int ey)
+        {
+            tmpQ = new List<int[]>();
+            route = new List<int[]>();
+            endTag = false;
+            tmpVis = new bool[25, 25];
+            tmpVis[x, y] = true;
+            ansLen = 10000;
+            dfsRoute(x, y, ex, ey, 0);
+            if (route.Count < 1)
+            {
+                return;
+            }
+            foreach (var p in route)
+            {
+                var i = p[0];
+                getMap();
+                if (x < 1 || y < 1 || x > size || y > size || mpBelong[x, y] == 2 || mpTmp[x, y] < 2)
+                {
+                    return;
+                }
+                if (i == 0)
+                {
+                    Pr("W");
+                    x -= 1;
+                }
+                else if (i == 1)
+                {
+                    Pr("D");
+                    y += 1;
+                }
+                else if (i == 2)
+                {
+                    Pr("S");
+                    x += 1;
+                }
+                else
+                {
+                    Pr("A");
+                    y -= 1;
+                    Thread.Sleep(TimeSpan.FromSeconds(0.25));
+                }
+            }
         }
 
         // 选择土地
@@ -364,7 +458,7 @@ namespace CheckmateBOT.NET
 
         private void botMove()
         {
-            Thread.Sleep(TimeSpan.FromSeconds(0.25));
+            Thread.Sleep(220);
             var x = 0;
             var y = 0;
             var tryTime = 0;
@@ -397,9 +491,26 @@ namespace CheckmateBOT.NET
             {
                 return;
             }
+            homes = new List<int[]>();
             if (mpType[x, y] == 2 && mpBelong[x, y] == 1)
             {
                 Pr("Z");
+            }
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    if (mpType[i + 1, j + 1] == 2 && mpBelong[i + 1, j + 1] == 2)
+                    {
+                        homes.Add(new int[2] { i + 1, j + 1 });
+                    }
+                }
+            }
+            if (homes.Count > 0 && rd.Next(1, 11) == 1 && mpTmp[x, y] > 30)
+            {
+                var g = rd.Next(0, homes.Count);
+                Attack(x, y, homes[g][0], homes[g][1]);
+                return;
             }
             var ansTmp = 0;
             var ansI = -1;
@@ -420,6 +531,10 @@ namespace CheckmateBOT.NET
                         if (mpType[px, py] == 2)
                         {
                             currentTmp = 10;
+                            if (!(homes.Contains(new int[2] { px, py })))
+                            {
+                                homes.Add(new int[2] { px, py });
+                            }
                         }
                         else if (mpType[px, py] == 5)
                         {
