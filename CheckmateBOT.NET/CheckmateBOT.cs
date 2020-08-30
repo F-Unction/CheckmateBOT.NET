@@ -458,7 +458,7 @@ namespace CheckmateBOT.NET
 
         private void botMove()
         {
-            Thread.Sleep(220);
+            Thread.Sleep(250);
             var x = 0;
             var y = 0;
             var tryTime = 0;

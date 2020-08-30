@@ -10,7 +10,10 @@ namespace CheckmateBOT.NET
     {
         static void Main(string[] args)
         {
-            CheckmateBOT bot=new CheckmateBOT("KANABOT_DOTNET", "IAMBOT.NET", "Bot房",false,true);
+            Console.WriteLine("RoomID?");
+            string roomID = Console.ReadLine();
+
+            CheckmateBOT bot = new CheckmateBOT("KANABOT_DOTNET", "IAMBOT.NET", roomID, false, true);
             bot.Init();
         }
     }
