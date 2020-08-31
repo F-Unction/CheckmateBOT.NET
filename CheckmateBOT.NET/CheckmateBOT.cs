@@ -72,12 +72,28 @@ namespace CheckmateBOT.NET
             ansLen = 100000;
         }
 
+        private bool ArrEq(int[] a, int[] b)
+        {
+            if (a.Length == b.Length)
+            {
+                for (int i = 0; i < a.Length; i++)
+                {
+                    if (a[i] != b[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
         //b in a
         private bool ListContainsArr(List<int[]> a, int[] b)
         {
             foreach (var tmp in a)
             {
-                if (tmp[0] == b[0] && tmp[1] == b[1])
+                if (ArrEq(tmp, b))
                 {
                     return true;
                 }
@@ -87,9 +103,9 @@ namespace CheckmateBOT.NET
 
         private void ListRemoveArr(ref List<int[]> a, int[] b)
         {
-            for(int i=0;i<a.Count;i++)
+            for (int i = 0; i < a.Count; i++)
             {
-                if (a[i][0] == b[0] && a[i][1] == b[1])
+                if (ArrEq(a[i], b))
                 {
                     a.RemoveAt(i);
                 }
@@ -402,6 +418,7 @@ namespace CheckmateBOT.NET
 
         private void dfsRoute(int x, int y, int ex, int ey, int cnt)
         {
+            int px = 0, py = 0;
             if (x == ex && y == ey && cnt < ansLen)
             {
                 ansLen = cnt;
@@ -415,28 +432,35 @@ namespace CheckmateBOT.NET
             }
             var tmpI = new int[4] { 0, 1, 2, 3 };
             tmpI = tmpI.OrderBy(c => Guid.NewGuid()).ToArray<int>();
-
+            var ansI = 0;
+            var ansDis = 10000;
             foreach (var i in tmpI)
             {
                 if (endTag)
                 {
                     return;
                 }
-                var px = x + di[i, 0];
-                var py = y + di[i, 1];
+                px = x + di[i, 0];
+                py = y + di[i, 1];
                 if (px >= 1 && px <= size && py >= 1 && py <= size && (!tmpVis[px, py]) && mpType[px, py] != 1)
                 {
 
-                    tmpVis[px, py] = true;
-
-                    tmpQ.Add(new int[3] { i, x, y });
-                    dfsRoute(px, py, ex, ey, cnt + 1);
-                    ListRemoveArr(ref tmpQ, new int[3] { i, x, y });
-                    if (rd.Next(0, 11) >= 2)
+                    if (Math.Abs(px - ex) + Math.Abs(py - ey) < ansDis)
                     {
-                        tmpVis[px, py] = false;
+                        ansDis = Math.Abs(px - ex) + Math.Abs(py - ey);
+                        ansI = i;
                     }
                 }
+            }
+            px = x + di[ansI, 0];
+            py = y + di[ansI, 1];
+            tmpVis[px, py] = true;
+            tmpQ.Add(new int[] { ansI, x, y });
+            dfsRoute(px, py, ex, ey, cnt + 1);
+            ListRemoveArr(ref tmpQ, new int[] { ansI, x, y });
+            if (rd.Next(0, 11) >= 2)
+            {
+                tmpVis[px, py] = false;
             }
         }
 
@@ -529,13 +553,13 @@ namespace CheckmateBOT.NET
             {
                 for (int j = 0; j < size; j++)
                 {
-                    if (   mpType[i + 1, j + 1] == 2 && mpBelong[i + 1, j + 1] == 2 && (!ListContainsArr(homes, new int[2] { i + 1, j + 1 }))    )
+                    if (mpType[i + 1, j + 1] == 2 && mpBelong[i + 1, j + 1] == 2 && (!ListContainsArr(homes, new int[2] { i + 1, j + 1 })))
                     {
                         homes.Add(new int[2] { i + 1, j + 1 });
                     }
                 }
             }
-            if (ListContainsArr(homes, new int[2] { x, y }) )
+            if (ListContainsArr(homes, new int[2] { x, y }))
             {
                 ListRemoveArr(ref homes, new int[2] { x, y });
             }
