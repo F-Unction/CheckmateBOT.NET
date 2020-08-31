@@ -18,25 +18,25 @@ namespace CheckmateBOT.NET
          * https://www.luogu.com.cn/paste/nbyi7ds9
          */
 
-        private string kanaLink;
-        private string username;
-        private string password;
-        private string roomId;
+        private readonly string kanaLink;
+        private readonly string username;
+        private readonly string password;
+        private readonly string roomId;
 
-        private ChromeDriver driver;
+        private readonly ChromeDriver driver;
         private IWebElement table;
 
         private int[,] mpType;
         private int[,] mpTmp;
         private int[,] mpBelong;
-        private int[,] di = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
+        private readonly int[,] di = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
 
         private bool[,] vis;
         private bool[,] tmpVis;
-        private bool isSecret;
         private bool endTag;
-        private bool isAutoReady;
         public bool error;
+        private readonly bool isSecret;
+        private readonly bool isAutoReady;
 
         private int sx;
         private int sy;
@@ -44,13 +44,12 @@ namespace CheckmateBOT.NET
         private int ansLen;
         private int size;
 
-
-        private List<int[]> q = new List<int[]>();
+        private readonly List<int[]> q = new List<int[]>();
         private List<int[]> homes = new List<int[]>();
         private List<int[]> tmpQ = new List<int[]>();
         private List<int[]> route = new List<int[]>();
 
-        private Random rd = new Random();
+        private readonly Random rd = new Random();
 
         public CheckmateBOT(string username, string password, string roomId, bool isSecret = false, bool isAutoReady = true)
         {
@@ -80,7 +79,7 @@ namespace CheckmateBOT.NET
         }
 
         // https://blog.csdn.net/weixin_42107267/article/details/93198343
-        public bool isElementExist(string elementID)
+        public bool IsElementExist(string elementID)
         {
             try
             {
@@ -93,7 +92,7 @@ namespace CheckmateBOT.NET
             }
         }
 
-        private void getMap()
+        private void GetMap()
         {
             mpType = new int[25, 25];
             mpTmp = new int[25, 25];
@@ -187,7 +186,7 @@ namespace CheckmateBOT.NET
             return;
         }
 
-        public void selectLand(int x, int y)
+        public void SelectLand(int x, int y)
         {
             try
             {
@@ -278,7 +277,7 @@ namespace CheckmateBOT.NET
             SendKeyToTable(c);
         }
 
-        private bool isOutside(int x, int y)
+        private bool IsOutside(int x, int y)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -293,7 +292,7 @@ namespace CheckmateBOT.NET
             return false;
         }
 
-        private void changeTarget()
+        private void ChangeTarget()
         {
             var insideAnsTmp = mpTmp[sx, sy];
             var insideAnsX = sx;
@@ -309,7 +308,7 @@ namespace CheckmateBOT.NET
                     var j = q + 1;
                     if (mpBelong[i, j] == 1)
                     {
-                        if (isOutside(i, j))
+                        if (IsOutside(i, j))
                         {
                             if (mpTmp[i, j] > outsideAnsTmp)
                             {
@@ -346,11 +345,11 @@ namespace CheckmateBOT.NET
                 vis = new bool[25, 25];
             }
             vis[sx, sy] = true;
-            selectLand(sx, sy);
+            SelectLand(sx, sy);
             return;
         }
 
-        private void dfsRoute(int x, int y, int ex, int ey, int cnt)
+        private void DfsRoute(int x, int y, int ex, int ey, int cnt)
         {
             int px = 0, py = 0;
             if (x == ex && y == ey && cnt < ansLen)
@@ -390,7 +389,7 @@ namespace CheckmateBOT.NET
             py = y + di[ansI, 1];
             tmpVis[px, py] = true;
             tmpQ.Add(new int[] { ansI, x, y });
-            dfsRoute(px, py, ex, ey, cnt + 1);
+            DfsRoute(px, py, ex, ey, cnt + 1);
             ListRemoveArr(ref tmpQ, new int[] { ansI, x, y });
             if (rd.Next(0, 11) >= 2)
             {
@@ -407,7 +406,7 @@ namespace CheckmateBOT.NET
             tmpVis = new bool[25, 25];
             tmpVis[x, y] = true;
             ansLen = 10000;
-            dfsRoute(x, y, ex, ey, 0);
+            DfsRoute(x, y, ex, ey, 0);
             if (route.Count < 1)
             {
                 return;
@@ -415,7 +414,7 @@ namespace CheckmateBOT.NET
             foreach (var p in route)
             {
                 var i = p[0];
-                getMap();
+                GetMap();
                 if (x < 1 || y < 1 || x > size || y > size || mpBelong[x, y] == 2 || mpTmp[x, y] < 2)
                 {
                     return;
@@ -445,18 +444,18 @@ namespace CheckmateBOT.NET
         }
 
 
-        private void botMove()
+        private void BotMove()
         {
             Thread.Sleep(250);
             var x = 0;
             var y = 0;
             var tryTime = 0;
-            getMap();
+            GetMap();
             while (true)
             {
                 if (q.Count == 0)
                 {
-                    changeTarget();
+                    ChangeTarget();
                 }
                 x = q[0][0];
                 y = q[0][1];
@@ -570,7 +569,7 @@ namespace CheckmateBOT.NET
             {
                 Pr("A");
             }
-            botMove();
+            BotMove();
             return;
         }
 
@@ -587,7 +586,7 @@ namespace CheckmateBOT.NET
                     Ready();
                 }
                 Pr("F");// 防踢
-                getMap();
+                GetMap();
                 sx = 0;
                 sy = 0;
                 for (int i = 0; i < size; i++)
@@ -605,8 +604,8 @@ namespace CheckmateBOT.NET
                 {
                     continue;
                 }
-                changeTarget();
-                botMove();
+                ChangeTarget();
+                BotMove();
             }
         }
     }
