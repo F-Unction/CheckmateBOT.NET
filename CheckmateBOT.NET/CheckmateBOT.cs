@@ -70,16 +70,19 @@ namespace CheckmateBOT.NET
             size = 20;
             endTag = false;
             ansLen = 100000;
+            return;
         }
 
         private void SendKeyToTable(string key)
         {
             var ac = new Actions(driver);
             ac.SendKeys(key).Perform();
+            return;
         }
 
+        /*
         // https://blog.csdn.net/weixin_42107267/article/details/93198343
-        public bool IsElementExist(string elementID)
+        private bool IsElementExist(string elementID)
         {
             try
             {
@@ -91,6 +94,7 @@ namespace CheckmateBOT.NET
                 return false;
             }
         }
+        */
 
         private void GetMap()
         {
@@ -186,7 +190,7 @@ namespace CheckmateBOT.NET
             return;
         }
 
-        public void SelectLand(int x, int y)
+        private void SelectLand(int x, int y)
         {
             try
             {
@@ -199,7 +203,7 @@ namespace CheckmateBOT.NET
             }
         }
 
-        public void Login()
+        private void Login()
         {
             Console.WriteLine("正在登录…");
             driver.Url = kanaLink;
@@ -224,10 +228,11 @@ namespace CheckmateBOT.NET
                 Thread.Sleep(5000);
                 driver.Close();
             }
+            return;
         }
 
         // 进入指定房间
-        public void EnterRoom()
+        private void EnterRoom()
         {
             driver.Url = "https://kana.byha.top:444/checkmate/room/" + roomId;
 
@@ -238,10 +243,11 @@ namespace CheckmateBOT.NET
                 ac.Click(settingBtn).Perform();
             }
             Console.WriteLine("Bot已就位！");
+            return;
         }
 
         // 准备开始，如果300秒未开始，程序退出
-        public void Ready()
+        private void Ready()
         {
             try
             {
@@ -265,16 +271,19 @@ namespace CheckmateBOT.NET
                 Thread.Sleep(5000);
                 Kill();
             }
+            return;
         }
 
         private void Kill()
         {
             driver.Close();
+            return;
         }
 
         private void Pr(string c)
         {
             SendKeyToTable(c);
+            return;
         }
 
         private bool IsOutside(int x, int y)
@@ -395,6 +404,7 @@ namespace CheckmateBOT.NET
             {
                 tmpVis[px, py] = false;
             }
+            return;
         }
 
         private void Attack(int x, int y, int ex, int ey)
@@ -441,12 +451,13 @@ namespace CheckmateBOT.NET
                 }
                 Thread.Sleep(TimeSpan.FromSeconds(0.25));
             }
+            return;
         }
 
 
         private void BotMove()
         {
-            Thread.Sleep(250);
+            Thread.Sleep(TimeSpan.FromSeconds(0.25));
             var x = 0;
             var y = 0;
             var tryTime = 0;
