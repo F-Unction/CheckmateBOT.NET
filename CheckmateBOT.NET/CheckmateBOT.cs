@@ -89,7 +89,7 @@ namespace CheckmateBOT.NET
             }
             catch
             {
-                Console.WriteLine("找不到ID为{0}的组件", elementID);
+                //Console.WriteLine("找不到ID为{0}的组件", elementID);
                 return false;
             }
         }
@@ -198,9 +198,9 @@ namespace CheckmateBOT.NET
                 driver.FindElementById(($"td-{((x - 1) * size) + y}")).Click();
                 return;
             }
-            catch(Exception e)
+            catch
             {
-                Console.WriteLine($"选择土地失败:{e.Message}");
+                //Console.WriteLine($"选择土地失败:{e.Message}");
                 return;
             }
         }
@@ -267,9 +267,9 @@ namespace CheckmateBOT.NET
             {
                 userCount = int.Parse(driver.FindElementById("total-user").Text);
             }
-            catch(Exception e)
+            catch//(Exception e)
             {
-                Console.WriteLine($"获取玩家数失败:{e.Message}");
+                //Console.WriteLine($"获取玩家数失败:{e.Message}");
                 userCount = 3;
             }
             var ac = new Actions(driver);
@@ -282,7 +282,7 @@ namespace CheckmateBOT.NET
                     EC.visibility_of_element_located((By.TAG_NAME, "tbody")))
                 */
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(300));
-                wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.VisibilityOfAllElementsLocatedBy(driver.FindElementsByTagName("tbody")));
+                wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.VisibilityOfAllElementsLocatedBy(By.TagName("tbody")));
             }
             catch (Exception e)
             {
@@ -418,6 +418,7 @@ namespace CheckmateBOT.NET
 
         private void Attack(int x, int y, int ex, int ey)
         {
+            Console.WriteLine("Attack");
             tmpQ = new List<int[]>();
             route = new List<int[]>();
             endTag = false;
