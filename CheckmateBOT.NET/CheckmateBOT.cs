@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Linq;
 using System.Collections.Generic;
+using static CheckmateBOT.NET.ToolKit;
 
 namespace CheckmateBOT.NET
 {
@@ -72,46 +73,6 @@ namespace CheckmateBOT.NET
             ansLen = 100000;
         }
 
-        private bool ArrEq(int[] a, int[] b)
-        {
-            if (a.Length == b.Length)
-            {
-                for (int i = 0; i < a.Length; i++)
-                {
-                    if (a[i] != b[i])
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
-
-        //b in a
-        private bool ListContainsArr(List<int[]> a, int[] b)
-        {
-            foreach (var tmp in a)
-            {
-                if (ArrEq(tmp, b))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void ListRemoveArr(ref List<int[]> a, int[] b)
-        {
-            for (int i = 0; i < a.Count; i++)
-            {
-                if (ArrEq(a[i], b))
-                {
-                    a.RemoveAt(i);
-                }
-            }
-        }
-
         private void SendKeyToTable(string key)
         {
             var ac = new Actions(driver);
@@ -119,7 +80,6 @@ namespace CheckmateBOT.NET
         }
 
         // https://blog.csdn.net/weixin_42107267/article/details/93198343
-        // 生草方法
         public bool isElementExist(string elementID)
         {
             try
@@ -129,12 +89,10 @@ namespace CheckmateBOT.NET
             }
             catch
             {
-                //Console.WriteLine("找不到ID为{0}的组件", elementID);
                 return false;
             }
         }
 
-        // 字面意思
         private void getMap()
         {
             mpType = new int[25, 25];
@@ -222,7 +180,6 @@ namespace CheckmateBOT.NET
                     }
                     catch
                     {
-                        //Console.WriteLine("format exception:{0}", e.Message);
                         mpTmp[i + 1, j + 1] = 0;
                     }
                 }
@@ -230,7 +187,6 @@ namespace CheckmateBOT.NET
             return;
         }
 
-        // 选择土地
         public void selectLand(int x, int y)
         {
             try
@@ -240,12 +196,10 @@ namespace CheckmateBOT.NET
             }
             catch
             {
-                //Console.WriteLine($"选择土地失败:{e.Message}");
                 return;
             }
         }
 
-        //登录，如果出现异常则在5S后退出
         public void Login()
         {
             Console.WriteLine("正在登录…");
@@ -254,23 +208,11 @@ namespace CheckmateBOT.NET
             var passwordBox = driver.FindElementByName("pwd");
             var ac = new Actions(driver);
 
-            // 输入账号密码并登录
             ac.SendKeys(usernameBox, username);
             ac.SendKeys(passwordBox, password);
-            // 等待用户手动输入验证码
             Thread.Sleep(10000);
             ac.Click(driver.FindElementById("submitButton")).Perform();
 
-            /*
-            try:
-                WebDriverWait(self.driver, 8).until(EC.url_to_be(self.kanaLink))
-                print("登录成功！")
-            except TimeoutException:
-                print("网络连接出现问题或账密错误！\n程序将在5秒后退出")
-                sleep(5)
-                self.driver.close()
-                del self
-             */
             try
             {
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(8));
@@ -282,7 +224,6 @@ namespace CheckmateBOT.NET
                 Console.WriteLine("网络连接出现问题或账密错误！");
                 Thread.Sleep(5000);
                 driver.Close();
-                //del self 没有del 告辞
             }
         }
 
@@ -307,9 +248,8 @@ namespace CheckmateBOT.NET
             {
                 userCount = int.Parse(driver.FindElementById("total-user").Text);
             }
-            catch//(Exception e)
+            catch
             {
-                //Console.WriteLine($"获取玩家数失败:{e.Message}");
                 userCount = 3;
             }
             var ac = new Actions(driver);
@@ -317,10 +257,6 @@ namespace CheckmateBOT.NET
 
             try
             {
-                /*
-                WebDriverWait(self.driver, 300).until(
-                    EC.visibility_of_element_located((By.TAG_NAME, "tbody")))
-                */
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(300));
                 wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.VisibilityOfAllElementsLocatedBy(By.TagName("tbody")));
             }
@@ -335,13 +271,11 @@ namespace CheckmateBOT.NET
         private void Kill()
         {
             driver.Close();
-            //del self 我tm del你妈
         }
 
         private void Pr(string c)
         {
             SendKeyToTable(c);
-            // print(c)
         }
 
         private bool isOutside(int x, int y)
@@ -572,14 +506,13 @@ namespace CheckmateBOT.NET
             var ansTmp = 0;
             var ansI = -1;
             int[] tmpI = { 0, 1, 2, 3 };
-            // random.shuffle(tmpI)
             tmpI = tmpI.OrderBy(c => Guid.NewGuid()).ToArray<int>();
 
             int px, py;
             foreach (var i in tmpI)
             {
                 px = x + di[i, 0];
-                py = y + di[i, 1];/////////
+                py = y + di[i, 1];
                 if (px >= 1 && px <= size && py >= 1 && py <= size && mpType[px, py] != 1 && (!vis[px, py]) && (mpType[px, py] != 5 || mpTmp[x, y] > mpTmp[px, py]))
                 {
                     var currentTmp = 0;
