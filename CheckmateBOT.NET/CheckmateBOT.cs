@@ -85,7 +85,7 @@ namespace CheckmateBOT.NET
             return false;
         }
 
-        private bool ListRemoveArr(ref List<int[]> a, int[] b)
+        private void ListRemoveArr(ref List<int[]> a, int[] b)
         {
             for(int i=0;i<a.Count;i++)
             {
@@ -94,7 +94,6 @@ namespace CheckmateBOT.NET
                     a.RemoveAt(i);
                 }
             }
-            return false;
         }
 
         private void SendKeyToTable(string key)
