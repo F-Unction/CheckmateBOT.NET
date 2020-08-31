@@ -396,13 +396,16 @@ namespace CheckmateBOT.NET
             }
             px = x + di[ansI, 0];
             py = y + di[ansI, 1];
-            tmpVis[px, py] = true;
-            tmpQ.Add(new int[] { ansI, x, y });
-            DfsRoute(px, py, ex, ey, cnt + 1);
-            ListRemoveArr(ref tmpQ, new int[] { ansI, x, y });
-            if (rd.Next(0, 11) >= 2)
+            if (px >= 1 && px <= size && py >= 1 && py <= size & (!tmpVis[px, py]) && mpType[px, py] != 1)
             {
-                tmpVis[px, py] = false;
+                tmpVis[px, py] = true;
+                tmpQ.Add(new int[] { ansI, x, y });
+                DfsRoute(px, py, ex, ey, cnt + 1);
+                ListRemoveArr(ref tmpQ, new int[] { ansI, x, y });
+                if (rd.Next(0, 11) >= 2)
+                {
+                    tmpVis[px, py] = false;
+                }
             }
             return;
         }
