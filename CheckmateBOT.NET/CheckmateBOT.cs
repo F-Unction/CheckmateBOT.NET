@@ -72,6 +72,31 @@ namespace CheckmateBOT.NET
             ansLen = 100000;
         }
 
+        //b in a
+        private bool ListContainsArr(List<int[]> a, int[] b)
+        {
+            foreach (var tmp in a)
+            {
+                if (tmp[0] == b[0] && tmp[1] == b[1])
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool ListRemoveArr(ref List<int[]> a, int[] b)
+        {
+            for(int i=0;i<a.Count;i++)
+            {
+                if (a[i][0] == b[0] && a[i][1] == b[1])
+                {
+                    a.RemoveAt(i);
+                }
+            }
+            return false;
+        }
+
         private void SendKeyToTable(string key)
         {
             var ac = new Actions(driver);
@@ -407,7 +432,7 @@ namespace CheckmateBOT.NET
 
                     tmpQ.Add(new int[3] { i, x, y });
                     dfsRoute(px, py, ex, ey, cnt + 1);
-                    tmpQ.Remove(new int[3] { i, x, y });
+                    ListRemoveArr(ref tmpQ, new int[3] { i, x, y });
                     if (rd.Next(0, 11) >= 2)
                     {
                         tmpVis[px, py] = false;
@@ -505,15 +530,15 @@ namespace CheckmateBOT.NET
             {
                 for (int j = 0; j < size; j++)
                 {
-                    if (mpType[i + 1, j + 1] == 2 && mpBelong[i + 1, j + 1] == 2  && (! homes.Contains(new int[2]{i +1, j + 1})))
+                    if (   mpType[i + 1, j + 1] == 2 && mpBelong[i + 1, j + 1] == 2 && (!ListContainsArr(homes, new int[2] { i + 1, j + 1 }))    )
                     {
                         homes.Add(new int[2] { i + 1, j + 1 });
                     }
                 }
             }
-            if (homes.Contains(new int[2] { x, y }))
+            if (ListContainsArr(homes, new int[2] { x, y }) )
             {
-                homes.Remove(new int[2] { x, y });
+                ListRemoveArr(ref homes, new int[2] { x, y });
             }
             if (homes.Count > 0 && rd.Next(1, 11) == 1 && mpTmp[x, y] > 30)
             {
