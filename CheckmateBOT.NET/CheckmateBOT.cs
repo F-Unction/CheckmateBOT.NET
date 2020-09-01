@@ -218,7 +218,7 @@ namespace CheckmateBOT.NET
 
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(8));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.UrlToBe(kanaLink));
                 Console.WriteLine("登录成功！");
             }
@@ -235,7 +235,7 @@ namespace CheckmateBOT.NET
         private void EnterRoom()
         {
             driver.Url = "https://kana.byha.top:444/checkmate/room/" + roomId;
-
+            //Console.WriteLine("entered room{0}", roomId);
             if (isSecret)
             {
                 var settingBtn = driver.FindElementByClassName("form-check-input");
@@ -279,6 +279,7 @@ namespace CheckmateBOT.NET
             driver.Close();
             return;
         }
+
 
         private void Pr(string c)
         {
@@ -457,6 +458,35 @@ namespace CheckmateBOT.NET
             return;
         }
 
+        private void March(int x, int y)
+        {
+            Console.WriteLine("March");
+            for (int i = 3; i < size - 1; i++)
+            {
+                for (int j = 3; j < size - 1; j++)
+                {
+                    if (mpBelong[i, j] == 2 && (mpType[i, j] == 5 || mpType[i, j] == 2 || mpType[i, j] == 3))
+                    {
+                        int tryTime = 0;
+                        for (; ; )
+                        {
+                            int px = rd.Next(i - 2, i + 2), py = rd.Next(j - 2, j + 2);
+                            if (mpType[px, py] != 1)
+                            {
+                                Attack(x, y, px, py);
+                                break;
+                            }
+                            tryTime++;
+                            if (tryTime >= 10)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return;
+        }
 
         private void BotMove()
         {
@@ -514,6 +544,11 @@ namespace CheckmateBOT.NET
             {
                 var g = rd.Next(0, homes.Count);
                 Attack(x, y, homes[g][0], homes[g][1]);
+                return;
+            }
+            else if (rd.Next(1, 10) == 1 && mpTmp[x, y] > 30)
+            {
+                March(x, y);
                 return;
             }
             var ansTmp = 0;
