@@ -10,10 +10,14 @@ namespace CheckmateBOT.NET
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Username?");
+            string username = Console.ReadLine();
+            Console.WriteLine("Password?");
+            string password = Console.ReadLine();
             Console.WriteLine("RoomID?");
             string roomID = Console.ReadLine();
 
-            CheckmateBOT bot = new CheckmateBOT("KANABOT_DOTNET", "IAMBOT.NET", roomID, false, true);
+            CheckmateBOT bot = new CheckmateBOT(username, password, roomID, false, true);
             bot.Init();
         }
     }
