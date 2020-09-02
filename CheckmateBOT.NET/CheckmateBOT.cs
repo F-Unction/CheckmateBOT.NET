@@ -548,7 +548,7 @@ namespace CheckmateBOT.NET
                 Attack(x, y, homes[g][0], homes[g][1]);
                 return;
             }
-            else if (rd.Next(1, 8) == 1 && mpTmp[x, y] > 20)
+            else if (rd.Next(1, 8) == 1 && mpTmp[x, y] > 80)
             {
                 March(x, y);
                 return;
