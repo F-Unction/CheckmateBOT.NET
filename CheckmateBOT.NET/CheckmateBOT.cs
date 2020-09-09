@@ -44,6 +44,7 @@ namespace CheckmateBOT.NET
         private int userCount;
         private int ansLen;
         private int size;
+        private int freeTime;
 
         private readonly List<int[]> q = new List<int[]>();
         private List<int[]> homes = new List<int[]>();
@@ -68,7 +69,9 @@ namespace CheckmateBOT.NET
             vis = new bool[25, 25];
             tmpVis = new bool[25, 25];
             error = false;
-            sx = sy = 0;
+            sx = 0;
+            sy = 0;
+            freeTime = 0;
             size = 20;
             endTag = false;
             ansLen = 100000;
@@ -205,6 +208,15 @@ namespace CheckmateBOT.NET
             }
         }
 
+        private void SendMessage(string msg)
+        {
+            var messageBox = driver.FindElementById("msg-sender");
+            var ac = new Actions(driver);
+            ac.SendKeys(messageBox, msg);
+            ac.SendKeys(Keys.Enter).Perform();
+            return;
+        }
+
         private void Login()
         {
             Console.WriteLine("正在登录…");
@@ -286,6 +298,10 @@ namespace CheckmateBOT.NET
         private void Pr(string c)
         {
             SendKeyToTable(c);
+            if (c != "F")
+            {
+                freeTime = 0;
+            }
             return;
         }
 
@@ -629,6 +645,7 @@ namespace CheckmateBOT.NET
 
             Login();
             EnterRoom();
+            freeTime = 0;
             table = driver.FindElementByTagName("tbody");
             while (true)
             {
@@ -638,6 +655,16 @@ namespace CheckmateBOT.NET
                 }
                 Pr("F");// 防踢
                 GetMap();
+                freeTime++;
+                if (freeTime % 120 == 119)
+                {
+                    SendMessage("欢迎来<a href=\"" + "https://kana.byha.top:444/checkmate/room/" + roomId + "\">" + roomId + "</a>玩");
+                }
+                var checkBox = driver.FindElementByClassName("form-check-input");// 防私密
+                if (checkBox.Selected && !isSecret)
+                {
+                    checkBox.Click();
+                }
                 sx = 0;
                 sy = 0;
                 for (int i = 0; i < size; i++)
