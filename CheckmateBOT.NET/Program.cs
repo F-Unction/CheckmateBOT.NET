@@ -10,6 +10,8 @@ namespace CheckmateBOT.NET
     {
         static void Main(string[] args)
         {
+            //KANABOT_DOTNET
+            //IAMBOT.NET
             Console.WriteLine("Username?");
             string username = Console.ReadLine();
             Console.WriteLine("Password?");

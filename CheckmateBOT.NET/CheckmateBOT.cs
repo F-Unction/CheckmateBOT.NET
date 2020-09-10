@@ -431,14 +431,16 @@ namespace CheckmateBOT.NET
 
         private void Attack(int x, int y, int ex, int ey)
         {
-            Console.WriteLine("Attack");
             tmpQ = new List<int[]>();
             route = new List<int[]>();
             endTag = false;
             tmpVis = new bool[25, 25];
             tmpVis[x, y] = true;
             ansLen = 10000;
+            Console.WriteLine("attack, {0}, {1}", ex, ey);
             DfsRoute(x, y, ex, ey, 0);
+            ArrOutput(route);
+            Console.WriteLine(", [{0}]", ansLen);
             if (route.Count < 1)
             {
                 return;
@@ -642,7 +644,6 @@ namespace CheckmateBOT.NET
 
         public void Init()
         {
-
             Login();
             EnterRoom();
             freeTime = 0;

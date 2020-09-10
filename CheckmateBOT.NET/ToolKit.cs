@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,6 +45,27 @@ namespace CheckmateBOT.NET
                 if (ArrEq(a[i], b))
                 {
                     a.RemoveAt(i);
+                }
+            }
+        }
+
+        public static void ArrOutput(List<int[]> Arr)
+        {
+            for (int i = 0; i < Arr.Count; i++)
+            {
+                Console.Write("{");
+                for (int j = 0; j < Arr[i].Length; j++)
+                {
+                    Console.Write("{0}", Arr[i][j]);
+                    if (j != Arr[i].Length - 1)
+                    {
+                        Console.Write(", ");
+                    }
+                }
+                Console.Write("}");
+                if (i != Arr.Count - 1)
+                {
+                    Console.Write(", ");
                 }
             }
         }
